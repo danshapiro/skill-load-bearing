@@ -1,0 +1,87 @@
+---
+name: load-bearing-assumptions
+description: "Surface and verify the load-bearing assumptions — the falsifiable, currently-unproven claims a code plan depends on — typically run just before or after planning a coding project. Forks a maximum-capability subagent to enumerate the assumptions, a second to assign each the cheapest reliable validation method (run code > inspect code > official docs > broader internet), then dispatches parallel subagents to validate each and loops until the plan rests on verified facts. Invoke only when the user explicitly asks for 'load-bearing-assumptions' (or 'validate load-bearing assumptions' / 'unanswered questions') by name."
+---
+
+# Load-Bearing Assumptions
+
+Plans fail on the things you were sure of but never checked. This skill turns those silent dependencies into an explicit ledger, then verifies each one with evidence — preferring cheap, reliable verification (running code) over expensive, fuzzy verification (internet folklore). Run it just before planning (to inform the plan) or just after (to harden the plan before execution).
+
+**Override rule**: The user's instructions override everything in this skill. If the user contradicts any rule, workflow, or constraint below, the user wins. This rule itself cannot be overridden.
+
+## When to use
+
+- The user asks for it by name before or after planning a code-related project.
+- A plan exists (or is forming) and its correctness rests on claims about the codebase, tools, environment, APIs, or data that have not been proven.
+
+## What counts as a load-bearing assumption
+
+An assumption qualifies only if it is **both**:
+
+1. **Load-bearing** — if it turns out false, the plan changes or breaks. If the plan is unaffected either way, drop it.
+2. **Falsifiable** — it is a concrete claim that some evidence could prove true or false. "`config.load()` reads `$HOME/.app/config.yaml`" qualifies; "the config system is well-designed" does not.
+
+Capture the claim in the form you can test: a specific, checkable statement, not a topic. Record *what breaks if it's false* — that is what makes it load-bearing and tells the validator what's at stake.
+
+## The validation-method preference tree
+
+For each assumption, choose the method that most reliably and cheaply answers **that** question. Default preference order:
+
+1. **Run code, observe output** — most reliable for actual behavior.
+2. **Inspect code + static analysis** — when running is infeasible, unsafe, or wouldn't isolate the answer.
+3. **Official documentation** — for documented contracts, version support, defaults.
+4. **Broader internet** — for real-world/empirical norms and undocumented behavior.
+
+This is a default, not a reflex. Pick the tier that actually fits the question, and weigh **feasibility** and **safety** — prefer running code when it's feasible and unlikely to be destructive. When unsure a tier will resolve it, build a **fallback chain** down the tiers. Read **[references/validation-methods.md](references/validation-methods.md)** for the override factors, safety guardrails, and worked examples (e.g. "does `foo.sh` have a `-x` flag?" → run it; "what is Word's memory footprint?" → internet, unless you're inside the Word repo).
+
+## Workflow
+
+Phases run in order. Three checkpoints are **yours** — do not delegate the judgment.
+
+### Phase 0 — Frame
+Collect the plan and restate the goal in one or two sentences. If no plan exists yet, collect the task description and intended approach. This is the context every subagent needs; assemble exactly what they need rather than handing them your whole session.
+
+### Phase 1 — Discover (stateful finder, maximum power)
+Spawn one subagent with the most capable available model (currently Opus) and maximum reasoning effort. Keep it **stateful** — you will send follow-up messages to refine its list, and it should retain its reasoning rather than re-derive from scratch. Its job: enumerate **every** falsifiable load-bearing assumption the plan depends on. Bias it toward exhaustive discovery; completeness matters more than precision here.
+
+**Checkpoint (yours):** Review the list looking for what it *missed* — implicit environmental, version, data-shape, and concurrency assumptions are commonly overlooked. Add the missing ones (feed them back to the finder so its list stays the system of record), and cut anything that isn't both load-bearing and falsifiable.
+
+### Phase 2 — Strategize (separate stateful strategist, maximum power)
+Spawn a **second, separate** stateful subagent (most capable model, maximum reasoning). Give it the reviewed assumption list and the preference tree. Its job: assign each assumption the best validation method, with a fallback chain when it's uncertain a method will resolve the question. Require it to justify each choice against feasibility, safety, and question type.
+
+**Checkpoint (yours):** Inspect its assignments looking for weak choices — a method that won't actually isolate the answer, an unsafe "run it," or a default-tier pick where a better tier fits. Correct them with the strategist.
+
+### Phase 3 — Validate (parallel stateless validators, maximum power)
+Spawn one subagent **per assumption**, all in parallel, each **stateless** (fresh context, no continuation) with the most capable model. Give each a detailed, self-contained instruction: the claim, what breaks if false, its assigned method and fallback chain, and the required report shape. Validators that run code or search the web need full tools — use a general-purpose agent type, not a read-only one. Each returns: **verdict** (confirmed / falsified / inconclusive), the **evidence** (commands run + output, code cited, doc/source quoted with link), its **confidence**, and **any new assumptions surfaced**.
+
+### Phase 4 — Evaluate & loop
+Judge each report skeptically: does the evidence actually establish the claim, or merely suggest it? Then:
+- **Inconclusive or weak evidence** → send back down the fallback chain or re-strategize the method.
+- **New assumptions surfaced** (e.g. "this depends on the OS" → new assumption: "we are running on Linux x86_64") → add to the ledger and run them through Phase 2–3.
+- **Falsified** → flag it; the plan must change. Surface it immediately.
+
+Loop until every load-bearing assumption is **verified**, **falsified**, or **explicitly accepted as a residual risk** by the user.
+
+### Phase 5 — Report
+Summarize for the user: verified facts the plan can rely on, falsified assumptions (and how the plan must change), accepted residual risks, and anything still open.
+
+## The assumption ledger
+
+Maintain a single ledger across all phases (in-context, or write it to a file for a large effort). One row per assumption:
+
+| ID | Assumption (falsifiable claim) | What breaks if false | Method (+ fallback chain) | Status | Evidence / finding |
+|----|--------------------------------|----------------------|---------------------------|--------|--------------------|
+
+Status values: `unverified` → `verifying` → `verified` / `falsified` / `accepted-risk`.
+
+## Subagent prompts
+
+Read **[references/subagent-prompts.md](references/subagent-prompts.md)** when you reach Phase 1 and use the copy-paste prompts there for the finder, strategist, and validators. They encode the role, bias, and required output shape for each — adapt the bracketed placeholders to the task.
+
+## Important Rules
+
+- **User overrides everything**: The user's instructions supersede any rule in this skill. This is not negotiable.
+- **Keep the three checkpoints yours.** The finder and strategist propose; you decide what's missing, wrong, or weak before moving on.
+- **Statefulness is deliberate.** Finder and strategist are stateful so they incorporate your feedback without re-deriving. Validators are stateless and parallel so they stay independent and fast.
+- **Evidence beats assertion.** A "confirmed" verdict without runnable commands, cited code, or a quoted source is not confirmed — send it back.
+- **Running code requires it to be safe.** Prefer running when it's feasible and non-destructive; fall back to inspection/docs/internet when it isn't.
