@@ -20,10 +20,11 @@ load-bearing-assumptions/
 
 ## Install
 
-Symlink the skill folder into your skills directory:
+Copy the skill folder into your skills directory (a copy, not a symlink, so edits in this
+repo don't go live until you deliberately re-copy):
 
 ```bash
-ln -s "$PWD/load-bearing-assumptions" ~/.codex/skills/load-bearing-assumptions
+cp -r load-bearing-assumptions ~/.codex/skills/load-bearing-assumptions
 ```
 
 Then invoke it by name (e.g. "use load-bearing-assumptions on this plan").

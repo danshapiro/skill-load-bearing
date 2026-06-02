@@ -1,6 +1,6 @@
 # Subagent Prompts
 
-Copy-paste prompts for the three subagent roles. Replace `[bracketed]` placeholders. Spawn all three with the most capable available model (currently Opus) and maximum reasoning effort.
+Copy-paste prompts for the three subagent roles. Replace `[bracketed]` placeholders. Spawn all three with the most capable model available to you, at maximum reasoning effort.
 
 ## Contents
 - [1. Finder (Phase 1 — stateful)](#1-finder-phase-1--stateful)
@@ -86,7 +86,7 @@ When you send corrections back: name the assumption, what's wrong with the choic
 
 ## 3. Validator (Phase 3 — stateless, one per assumption, in parallel)
 
-Spawn one per assumption with full tools (general-purpose agent type — it may need to run commands, read files, and search the web). Fill in every placeholder; the validator has no other context.
+Spawn one per assumption with full tool access — it may need to run commands, read files, and search the web (not a read-only agent). Fill in every placeholder; the validator has no other context.
 
 ```
 Validate one assumption and report back. Think rigorously; do not rubber-stamp it.

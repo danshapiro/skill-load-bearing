@@ -23,16 +23,22 @@ An assumption qualifies only if it is **both**:
 
 Capture the claim in the form you can test: a specific, checkable statement, not a topic. Record *what breaks if it's false* — that is what makes it load-bearing and tells the validator what's at stake.
 
-## The validation-method preference tree
+## Choosing how to validate each assumption
 
-For each assumption, choose the method that most reliably and cheaply answers **that** question. Default preference order:
+For each assumption, pick the method that most reliably and cheaply answers **that** question. Default preference, most to least reliable for code behavior:
 
-1. **Run code, observe output** — most reliable for actual behavior.
+1. **Run code, observe output** — direct evidence of actual behavior, defaults, side effects, exit codes.
 2. **Inspect code + static analysis** — when running is infeasible, unsafe, or wouldn't isolate the answer.
-3. **Official documentation** — for documented contracts, version support, defaults.
-4. **Broader internet** — for real-world/empirical norms and undocumented behavior.
+3. **Official documentation** — for documented contracts, supported versions, defaults.
+4. **Broader internet** — for undocumented behavior and real-world/empirical norms; weakest, so corroborate.
 
-This is a default, not a reflex. Pick the tier that actually fits the question, and weigh **feasibility** and **safety** — prefer running code when it's feasible and unlikely to be destructive. When unsure a tier will resolve it, build a **fallback chain** down the tiers. Read **[references/validation-methods.md](references/validation-methods.md)** for the override factors, safety guardrails, and worked examples (e.g. "does `foo.sh` have a `-x` flag?" → run it; "what is Word's memory footprint?" → internet, unless you're inside the Word repo).
+This is a default, not a reflex. Override the order by weighing:
+
+- **Feasibility** — can you actually run/inspect it here (binary present, buildable, reachable)? If not, drop a tier.
+- **Safety** — prefer running only when it's non-destructive (no data, money, or external side effects). Make it safe with `--help`/`--dry-run`/temp copies/sandbox/read-only flags; if you can't, fall back a tier.
+- **Question type** — deterministic local behavior → run/inspect; dynamic/empirical (memory, latency) → a single run is one noisy data point, so measure repeatedly for *this* system or use the internet for typical values; documented contract → docs; real-world or undocumented norm → internet. **Locality flips the tier**: "what is Word's memory footprint?" is an internet question in general, but a run/inspect question inside the Word repo with a build.
+
+When unsure a method will resolve the question, write a **fallback chain** and let the validator walk it: try tier *n*, and on failure (tool absent, output ambiguous, doc silent) move to *n+1*. Format: `run (foo.sh --help) → inspect (arg parsing) → docs`. One reliable method is fine when no fallback is needed — e.g. "does `foo.sh` have a `-x` flag?" is just `run (foo.sh --help) → inspect the script`.
 
 ## Workflow
 
@@ -42,17 +48,17 @@ Phases run in order. Three checkpoints are **yours** — do not delegate the jud
 Collect the plan and restate the goal in one or two sentences. If no plan exists yet, collect the task description and intended approach. This is the context every subagent needs; assemble exactly what they need rather than handing them your whole session.
 
 ### Phase 1 — Discover (stateful finder, maximum power)
-Spawn one subagent with the most capable available model (currently Opus) and maximum reasoning effort. Keep it **stateful** — you will send follow-up messages to refine its list, and it should retain its reasoning rather than re-derive from scratch. Its job: enumerate **every** falsifiable load-bearing assumption the plan depends on. Bias it toward exhaustive discovery; completeness matters more than precision here.
+Spawn one subagent with the most capable model available to you, at maximum reasoning effort. Keep it **stateful** — you will send follow-up messages to refine its list, and it should retain its reasoning rather than re-derive from scratch. Its job: enumerate **every** falsifiable load-bearing assumption the plan depends on. Bias it toward exhaustive discovery; completeness matters more than precision here.
 
 **Checkpoint (yours):** Review the list looking for what it *missed* — implicit environmental, version, data-shape, and concurrency assumptions are commonly overlooked. Add the missing ones (feed them back to the finder so its list stays the system of record), and cut anything that isn't both load-bearing and falsifiable.
 
 ### Phase 2 — Strategize (separate stateful strategist, maximum power)
-Spawn a **second, separate** stateful subagent (most capable model, maximum reasoning). Give it the reviewed assumption list and the preference tree. Its job: assign each assumption the best validation method, with a fallback chain when it's uncertain a method will resolve the question. Require it to justify each choice against feasibility, safety, and question type.
+Spawn a **second, separate** stateful subagent (most capable model available, maximum reasoning). Give it the reviewed assumption list and the preference tree. Its job: assign each assumption the best validation method, with a fallback chain when it's uncertain a method will resolve the question. Require it to justify each choice against feasibility, safety, and question type.
 
 **Checkpoint (yours):** Inspect its assignments looking for weak choices — a method that won't actually isolate the answer, an unsafe "run it," or a default-tier pick where a better tier fits. Correct them with the strategist.
 
 ### Phase 3 — Validate (parallel stateless validators, maximum power)
-Spawn one subagent **per assumption**, all in parallel, each **stateless** (fresh context, no continuation) with the most capable model. Give each a detailed, self-contained instruction: the claim, what breaks if false, its assigned method and fallback chain, and the required report shape. Validators that run code or search the web need full tools — use a general-purpose agent type, not a read-only one. Each returns: **verdict** (confirmed / falsified / inconclusive), the **evidence** (commands run + output, code cited, doc/source quoted with link), its **confidence**, and **any new assumptions surfaced**.
+Spawn one subagent **per assumption**, all in parallel, each **stateless** (fresh context, no continuation) with the most capable model available to you. Give each a detailed, self-contained instruction: the claim, what breaks if false, its assigned method and fallback chain, and the required report shape. Validators that run code or search the web need full tool access (able to run commands, read files, and search the web), not a read-only agent. Each returns: **verdict** (confirmed / falsified / inconclusive), the **evidence** (commands run + output, code cited, doc/source quoted with link), its **confidence**, and **any new assumptions surfaced**.
 
 ### Phase 4 — Evaluate & loop
 Judge each report skeptically: does the evidence actually establish the claim, or merely suggest it? Then:
