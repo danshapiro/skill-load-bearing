@@ -4,9 +4,10 @@ An Agent Skill for surfacing and verifying **load-bearing assumptions** — the 
 currently-unproven claims a code plan depends on. Run it just before planning (to inform the
 plan) or just after (to harden it before execution).
 
-The skill discovers assumptions with a max-capability subagent, assigns each the cheapest
-reliable validation method (run code > inspect code > official docs > broader internet),
-dispatches parallel subagents to validate them, and loops until the plan rests on verified facts.
+The skill discovers assumptions with a max-capability subagent, prunes them for necessity
+(currently unproven and costly to learn late), assigns the cheapest reliable validation
+method or grouped method, dispatches parallel subagents to validate the remaining targets,
+and loops until the plan rests on verified facts.
 
 ## Layout
 
@@ -14,7 +15,6 @@ dispatches parallel subagents to validate them, and loops until the plan rests o
 load-bearing-assumptions/
 ├── SKILL.md                         # workflow + when to use
 └── references/
-    ├── validation-methods.md        # the preference tree, safety, worked examples
     └── subagent-prompts.md          # copy-paste prompts for finder/strategist/validators
 ```
 
