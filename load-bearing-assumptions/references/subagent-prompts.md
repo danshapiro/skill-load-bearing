@@ -65,7 +65,9 @@ Default preference order:
 But this is a default, not a reflex. Override it by weighing:
 - FEASIBILITY: can it actually be run/inspected here?
 - SAFETY: prefer running only when feasible AND non-destructive (no data/money/external
-  side effects; use --help/--dry-run/temp copies/sandbox to make it safe).
+  side effects; use --help/--dry-run/temp copies/sandbox to make it safe). If the only path
+  to validate requires a state-changing action, mark it "needs user approval" instead of
+  assigning a plain run.
 - QUESTION TYPE: deterministic local behavior → run/inspect; dynamic/empirical (footprint,
   latency) → measure repeatedly or use internet for typical values; documented contract → docs;
   real-world/undocumented norm → internet. Locality can flip the tier.
@@ -86,7 +88,7 @@ When you send corrections back: name the assumption, what's wrong with the choic
 
 ## 3. Validator (Phase 3 — stateless, one per assumption, in parallel)
 
-Spawn one per assumption with full tool access — it may need to run commands, read files, and search the web (not a read-only agent). Fill in every placeholder; the validator has no other context.
+Spawn one per assumption with full tool access — it may need to run commands, read files, and search the web (not a read-only agent, but it must run only non-destructive commands; see SAFETY below). Fill in every placeholder; the validator has no other context.
 
 ```
 Validate one assumption and report back. Think rigorously; do not rubber-stamp it.
@@ -95,8 +97,12 @@ ASSUMPTION (the claim to test): [exact falsifiable claim]
 WHAT BREAKS IF FALSE: [stakes]
 ASSIGNED METHOD + FALLBACK CHAIN: [e.g. run (foo.sh --help) → inspect (arg parsing) → docs]
 CONTEXT NEEDED: [repo path, command, env, doc URL, anything required to act]
-SAFETY: prefer running only if non-destructive; if the method is unsafe or infeasible,
-move to the next link in the chain and say why.
+SAFETY: run only read-only / non-destructive commands. Do NOT make actual changes — no
+deleting, overwriting, or mutating files/data/config, installing packages, or external/
+production writes — even if it would help confirm the claim. If validating genuinely
+requires a state-changing action, do NOT perform it: report it as a blocked step (the exact
+command + why it's needed) for the user to approve, and fall back to the next safe link in
+the chain if one exists.
 
 Execute the chain: try the first method; on failure, ambiguity, or inconclusive output,
 proceed to the next link. Reach a verdict only on evidence you actually gathered.
@@ -108,4 +114,6 @@ Return exactly:
 - CONFIDENCE: high | medium | low, with the reason.
 - NEW ASSUMPTIONS SURFACED: any new falsifiable dependency you discovered (e.g. "the answer
   depends on the OS" → "we are running on [X]"), or "none".
+- BLOCKED ON APPROVAL: any state-changing action that would confirm this but needs the
+  user's OK before running — the exact command + why — or "none".
 ```
