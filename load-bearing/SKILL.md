@@ -1,9 +1,9 @@
 ---
-name: load-bearing-assumptions
-description: "Surface and verify the load-bearing assumptions — the falsifiable, currently-unproven claims a code plan depends on — typically run just before or after planning a coding project. Forks a maximum-capability subagent to enumerate the assumptions, a second to assign each the cheapest reliable validation method (run code > inspect code > official docs > broader internet), then dispatches parallel subagents to validate each and loops until the plan rests on verified facts. Invoke only when the user explicitly asks for 'load-bearing-assumptions' (or 'validate load-bearing assumptions' / 'unanswered questions') by name."
+name: load-bearing
+description: "Surface and verify the load-bearing assumptions — the falsifiable, currently-unproven claims a code plan depends on — typically run just before or after planning a coding project. Forks a maximum-capability subagent to enumerate the assumptions, a second to assign each the cheapest reliable validation method (run code > inspect code > official docs > broader internet), then dispatches parallel subagents to validate each and loops until the plan rests on verified facts. Invoke only when the user explicitly asks for 'load-bearing' (or 'validate load-bearing assumptions' / 'unanswered questions') by name."
 ---
 
-# Load-Bearing Assumptions
+# Load Bearing
 
 Plans fail on the things you were sure of but never checked. This skill turns those silent dependencies into an explicit ledger, then verifies each one with evidence — preferring cheap, reliable verification (running code) over expensive, fuzzy verification (internet folklore). Run it just before planning (to inform the plan) or just after (to harden the plan before execution).
 

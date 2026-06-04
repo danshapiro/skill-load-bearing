@@ -19,7 +19,7 @@ This takes about 30 min for a meaty spec (can be much longer or shorter), plus h
 ## Install
 
 This is a simple skill — no code, just a `SKILL.md` and a reference doc — so install it the
-normal way for your agent: drop the `load-bearing-assumptions/` folder into your agent's
+normal way for your agent: drop the `load-bearing/` folder into your agent's
 skills directory (e.g. `~/.claude/skills/` for Claude Code, `~/.agents/skills/` for Codex).
 Then invoke it by name.
 
@@ -95,7 +95,7 @@ buckets.
 ## Layout
 
 ```
-load-bearing-assumptions/
+load-bearing/
 ├── SKILL.md                         # workflow + when to use
 └── references/
     └── subagent-prompts.md          # copy-paste prompts for finder/strategist/validators
