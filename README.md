@@ -1,5 +1,19 @@
 # Load Bearing
 
+## Endorsements
+
+> *Without this step I'd have written a confident plan that shipped and **left the bug in place**!*
+>
+> — **Opus 4.8 xhigh**
+
+> *That falsifies a load-bearing assumption in the current plan.*
+>
+> — **GPT-5.5 Codex xhigh**
+
+> *The LBA paid for itself — two of my three original design decisions were wrong.*
+>
+> — **Opus 4.8 medium**
+
 You know how your LLM likes to talk about 'load bearing' assumptions? Well it's time they bear some loads. This surfaces and verifies the claims a code plan depends on that haven't been tested yet. Run it just before planning (to inform the plan) or just after (to harden it before execution).
 
 This takes about 30 min for a meaty spec (can be much longer or shorter), plus however many tokens parallel subagents can digest in said 30 minutes.
