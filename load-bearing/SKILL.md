@@ -1,6 +1,6 @@
 ---
 name: load-bearing
-description: "Surface and verify the load-bearing assumptions — the falsifiable, currently-unproven claims a code plan depends on — typically run just before or after planning a coding project. Forks a maximum-capability subagent to enumerate the assumptions, a second to assign each the cheapest reliable validation method (run code > inspect code > official docs > broader internet), then dispatches parallel subagents to validate each and loops until the plan rests on verified facts. Invoke only when the user explicitly asks for 'load-bearing' (or 'validate load-bearing assumptions' / 'unanswered questions') by name."
+description: "Surface and verify the load-bearing assumptions — the falsifiable, currently-unproven claims a code plan depends on — typically run just before or after planning a coding project. Invoke only when the user explicitly requests a load bearing analysis or skill."
 ---
 
 # Load Bearing
